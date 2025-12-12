@@ -1,0 +1,29 @@
+device:
+  name: Generic MediaTek Device
+  manufacturer: MediaTek
+
+identification:
+  soc_prefix: mt
+
+features:
+  reboot:
+    system: true
+    recovery: true
+    bootloader: true
+    meta: unknown
+
+  scripts:
+    diagnostics: true
+    backups: true
+    ota_disable: false
+    modem_tools: false
+
+kernel:
+  requirements:
+    - readable_config
+    - root_hooks_optional
+
+safety:
+  warnings:
+    - "Device-specific behavior unknown"
+    - "Some features may be restricted"
