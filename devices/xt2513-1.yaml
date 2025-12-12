@@ -1,0 +1,45 @@
+device:
+  name: Motorola Kansas
+  model: XT2513-1
+  manufacturer: Motorola
+  soc: MT6835
+
+identification:
+  getprop:
+    - ro.product.model: XT2513-1
+    - ro.board.platform: mt6835
+
+boot:
+  slots: A/B
+  supports_fastboot: true
+  supports_meta: partial
+  supports_brom: hardware_only
+
+features:
+  reboot:
+    system: true
+    recovery: true
+    bootloader: true
+    meta: cautious
+
+  scripts:
+    diagnostics: true
+    backups: true
+    ota_disable: true
+    modem_tools: false
+
+kernel:
+  requirements:
+    - readable_config
+    - root_hooks_optional
+    - modules_preferred
+
+safety:
+  requires_backup_before:
+    - ota_disable
+    - partition_write
+
+  warnings:
+    - "Flashing vbmeta incorrectly can soft-brick the device"
+    - "META mode entry via software is not guaranteed"
+    - "A/B slot awareness is required for boot image operations"
