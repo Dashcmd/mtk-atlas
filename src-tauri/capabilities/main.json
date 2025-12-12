@@ -1,0 +1,8 @@
+{
+  "identifier": "main",
+  "description": "Default MTK Atlas permissions",
+  "windows": ["*"],
+  "permissions": [
+    "core:default"
+  ]
+}
