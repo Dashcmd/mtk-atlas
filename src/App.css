@@ -1,111 +1,299 @@
-/* === GLOBAL LOCKDOWN === */
+/* ======================================================
+   MTK ATLAS — UI FIX (MATCHES EXISTING APP.TSX)
+   ====================================================== */
+
+:root {
+  --bg-main: #0c0f14;
+  --bg-panel: #141821;
+  --bg-card: #10141b;
+  --bg-input: #0b0f16;
+
+  --text-main: #e8eaf0;
+  --text-muted: #9ca3af;
+
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --info: #60a5fa;
+
+  --border: rgba(255,255,255,0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   margin: 0;
-  padding: 0;
-  width: 100%;
   height: 100%;
-  overflow: hidden;
-  background: #0c0f14;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #e6e6e6;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size: 13px;
 }
 
-/* === APP CONTAINER === */
+/* ================= CONTAINER ================= */
+
 .container {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* === HEADER === */
+.fade {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
+}
+
+/* ================= HEADER ================= */
+
 .header {
-  padding: 12px 20px;
-  border-bottom: 1px solid #222;
-  background: #0f131a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 22px;
 }
 
 .subtitle {
-  font-size: 0.85rem;
-  opacity: 0.7;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-/* === MAIN GRID === */
+/* ================= NAV ================= */
+
+.nav {
+  display: flex;
+  gap: 6px;
+}
+
+.nav button {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.nav button.active {
+  color: var(--info);
+  border-color: var(--info);
+  font-weight: 600;
+}
+
+/* ================= GRID ================= */
+
 .grid {
   display: grid;
-  grid-template-columns: 320px 1fr 420px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
-  padding: 12px;
-  overflow: hidden;
 }
 
-/* === CARDS === */
+/* ================= CARDS ================= */
+
 .card {
-  background: #111622;
-  border: 1px solid #1e2433;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.card.primary {
+  border-color: var(--info);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* ================= STATUS ================= */
+
+.status-box {
+  padding: 6px 10px;
   border-radius: 8px;
-  padding: 12px;
-  overflow: hidden;
+  margin-bottom: 6px;
+  font-size: 12px;
 }
 
-/* === STATUS === */
-.status {
-  margin: 4px 0;
+.status-box.good {
+  background: #12341f;
+  color: var(--ok);
 }
-.status.good { color: #00ff9c; }
-.status.bad { color: #ff4d4d; }
-.status.neutral { color: #aaa; }
 
-/* === TERMINAL === */
-.terminal {
-  background: #05070c;
-  border: 1px solid #1a1f2b;
-  border-radius: 6px;
+.status-box.bad {
+  background: #341212;
+  color: var(--danger);
+}
+
+.status-box.warn {
+  background: #3a2d14;
+  color: var(--warn);
+}
+
+.status-box.neutral {
+  background: #232733;
+  color: var(--text-muted);
+}
+
+/* ================= CAPS ================= */
+
+.caps {
+  background: #070a0f;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 10px;
-  margin-top: 8px;
-  color: #00ff9c;
-  font-family: monospace;
-  font-size: 0.85rem;
-  white-space: pre-wrap;
+  font-size: 12px;
+  max-height: 160px;
   overflow-y: auto;
-  max-height: 260px;
 }
 
-/* === ACTIONS === */
-.actions button {
-  display: block;
+/* ================= INPUTS ================= */
+
+textarea,
+input[type="text"] {
   width: 100%;
+  background: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}
+
+textarea:disabled {
+  opacity: 0.4;
+}
+
+/* ================= TERMINAL ================= */
+
+.terminal {
+  background: #070a0f;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* ================= BUTTONS ================= */
+
+button {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+button:hover {
+  border-color: var(--info);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================= HELP ================= */
+
+.help {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.block {
+  margin-bottom: 16px;
+}
+
+.block h4 {
   margin-bottom: 6px;
 }
 
-/* === LOG PANEL === */
-.log {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.log-body {
-  flex: 1;
-  overflow-y: auto;
-  font-size: 0.8rem;
-}
+/* ================= LOGS ================= */
 
 .log-line {
-  display: flex;
-  gap: 8px;
-  padding: 2px 0;
-}
-.log-line.info { color: #aaa; }
-.log-line.warn { color: #ffb400; }
-.log-line.error { color: #ff4d4d; }
-
-.ts {
-  opacity: 0.6;
-  min-width: 60px;
+  white-space: pre-wrap;
 }
 
-/* === INPUT LOCK === */
-textarea, input {
-  resize: none;
+.log-line.info { color: var(--info); }
+.log-line.warn { color: var(--warn); }
+.log-line.error { color: var(--danger); }
+
+/* ================= MISC ================= */
+
+.muted {
+  color: var(--text-muted);
 }
+
+/* ================= MTK CAPABILITIES ================= */
+
+.caps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cap {
+  background: #0b0f16;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.cap-title {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.cap-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cap.ok {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.cap.warn {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.cap.danger {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.cap.off {
+  opacity: 0.45;
+}
+
+.caps-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
