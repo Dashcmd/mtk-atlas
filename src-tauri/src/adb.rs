@@ -2,63 +2,78 @@ use std::process::Command;
 
 #[derive(Debug)]
 pub enum AdbState {
-    NotInstalled,
     NoDevice,
     Unauthorized,
     Connected,
 }
 
-pub fn detect_adb_state() -> AdbState {
-    let version = Command::new("adb").arg("version").output();
-    if version.is_err() {
-        return AdbState::NotInstalled;
-    }
+/* ===============================
+   ADB STATE DETECTION
+   =============================== */
 
-    let output = Command::new("adb").arg("devices").output();
+pub fn detect_adb_state() -> AdbState {
+    let output = Command::new("adb")
+        .arg("devices")
+        .output();
+
     if let Ok(out) = output {
         let text = String::from_utf8_lossy(&out.stdout);
 
         if text.contains("\tdevice") {
-            AdbState::Connected
-        } else if text.contains("\tunauthorized") {
-            AdbState::Unauthorized
-        } else {
-            AdbState::NoDevice
+            return AdbState::Connected;
         }
-    } else {
-        AdbState::NoDevice
+
+        if text.contains("\tunauthorized") {
+            return AdbState::Unauthorized;
+        }
     }
+
+    AdbState::NoDevice
 }
 
 pub fn adb_state_label(state: &AdbState) -> &'static str {
     match state {
-        AdbState::NotInstalled => "ADB not installed",
-        AdbState::NoDevice => "No device connected",
-        AdbState::Unauthorized => "Device unauthorized",
         AdbState::Connected => "Device connected",
+        AdbState::Unauthorized => "Device unauthorized",
+        AdbState::NoDevice => "No device",
     }
 }
 
-/* === DEVICE INFO === */
+/* ===============================
+   BOOLEAN CAPABILITY HELPER
+   =============================== */
+
+pub fn adb_connected() -> bool {
+    matches!(detect_adb_state(), AdbState::Connected)
+}
+
+/* ===============================
+   DEVICE INFO
+   =============================== */
 
 pub fn adb_device_info() -> Option<(String, String)> {
+    if !adb_connected() {
+        return None;
+    }
+
     let model = Command::new("adb")
         .args(["shell", "getprop", "ro.product.model"])
         .output()
-        .ok()?;
+        .ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())?;
 
     let serial = Command::new("adb")
-        .arg("get-serialno")
+        .args(["get-serialno"])
         .output()
-        .ok()?;
+        .ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())?;
 
-    Some((
-        String::from_utf8_lossy(&model.stdout).trim().to_string(),
-        String::from_utf8_lossy(&serial.stdout).trim().to_string(),
-    ))
+    Some((model, serial))
 }
 
-/* === REAL ACTIONS === */
+/* ===============================
+   REBOOT ACTIONS (SAFE)
+   =============================== */
 
 pub fn adb_reboot() -> Result<(), String> {
     run_adb(&["reboot"])
@@ -71,6 +86,10 @@ pub fn adb_reboot_recovery() -> Result<(), String> {
 pub fn adb_reboot_bootloader() -> Result<(), String> {
     run_adb(&["reboot", "bootloader"])
 }
+
+/* ===============================
+   INTERNAL HELPER
+   =============================== */
 
 fn run_adb(args: &[&str]) -> Result<(), String> {
     let out = Command::new("adb")
