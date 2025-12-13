@@ -5,6 +5,32 @@ use std::fs;
 pub struct DeviceProfile {
     pub device: DeviceInfo,
 }
+#[derive(Debug, Clone)]
+pub struct ProfilePolicy {
+    pub allow_flash: bool,
+    pub allow_fastboot: bool,
+    pub allow_reboot: bool,
+}
+
+pub fn profile_policy(profile: &str) -> ProfilePolicy {
+    match profile {
+        "generic-mtk" => ProfilePolicy {
+            allow_flash: false,
+            allow_fastboot: true,
+            allow_reboot: true,
+        },
+        "developer-unlocked" => ProfilePolicy {
+            allow_flash: true,
+            allow_fastboot: true,
+            allow_reboot: true,
+        },
+        _ => ProfilePolicy {
+            allow_flash: false,
+            allow_fastboot: false,
+            allow_reboot: true,
+        },
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct DeviceInfo {
