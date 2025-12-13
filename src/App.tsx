@@ -10,22 +10,65 @@ function App() {
   const [deviceProfile] = createResource(() =>
     invoke<string>("get_active_profile")
   );
+const [kernelCaps] = createResource(() =>
+  invoke<[boolean, boolean]>("get_kernel_capabilities")
+);
 
-  return (
-    <main class="container">
-      <h1>MTK Atlas</h1>
+return (
+  <main class="container">
+    <h1>MTK Atlas</h1>
 
-      <p>
-        <strong>Active Device Profile:</strong>{" "}
-        {deviceProfile.loading ? "Detecting…" : deviceProfile()}
-      </p>
+    <div class="card">
+      <div class="row">
+        <span class="label">Active Device Profile</span>
+        <span class="status">
+          {deviceProfile.loading ? "Detecting…" : deviceProfile()}
+        </span>
+      </div>
 
-      <p>
-        <strong>Kernel Status:</strong>{" "}
-        {kernelStatus.loading ? "Checking…" : kernelStatus()}
-      </p>
-    </main>
-  );
+      <div class="row">
+        <span class="label">Kernel Status</span>
+        <span
+          class={
+            "status " +
+            (kernelStatus() === "Usable"
+              ? "good"
+              : kernelStatus() === "Limited"
+              ? "warn"
+              : "bad")
+          }
+        >
+          {kernelStatus.loading ? "Checking…" : kernelStatus()}
+        </span>
+      </div>
+    </div>
+
+    <h2>Kernel Capabilities</h2>
+
+    <div class="card">
+      {kernelCaps.loading ? (
+        <p class="label">Evaluating kernel permissions…</p>
+      ) : (
+        <>
+          <div class="row">
+            <span class="label">Kernel inspection</span>
+            <span class={"status " + (kernelCaps()![0] ? "good" : "bad")}>
+              {kernelCaps()![0] ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+
+          <div class="row">
+            <span class="label">Kernel modification</span>
+            <span class={"status " + (kernelCaps()![1] ? "good" : "bad")}>
+              {kernelCaps()![1] ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  </main>
+);
+
 }
 
 export default App;
