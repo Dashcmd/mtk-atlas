@@ -75,3 +75,21 @@ h2 {
 .status.bad {
   color: var(--bad);
 }
+
+button.action {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background-color: #1f2433;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+button.action:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
