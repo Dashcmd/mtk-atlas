@@ -6,6 +6,10 @@ function App() {
   const [kernelStatus] = createResource(() =>
     invoke<string>("get_kernel_status")
   );
+const [kernelExplanation] = createResource(() =>
+  invoke<string>("get_kernel_explanation")
+);
+
 
   const [deviceProfile] = createResource(() =>
     invoke<string>("get_active_profile")
@@ -56,6 +60,12 @@ return (
               {kernelCaps()![0] ? "Enabled" : "Disabled"}
             </span>
           </div>
+<p class="label" style={{ "margin-top": "12px" }}>
+  {kernelExplanation.loading
+    ? "Analyzing kernel environment…"
+    : kernelExplanation()}
+</p>
+
 
           <div class="row">
             <span class="label">Kernel modification</span>
