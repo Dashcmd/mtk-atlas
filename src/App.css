@@ -1,95 +1,111 @@
-:root {
-  --bg: #0b0d10;
-  --panel: #131722;
-  --border: #1f2433;
-
-  --text-main: #f5f7fa;
-  --text-muted: #9aa3b2;
-
-  --good: #3fb950;
-  --warn: #d29922;
-  --bad: #f85149;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
+/* === GLOBAL LOCKDOWN === */
+html, body {
   margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background-color: var(--bg);
-  color: var(--text-main);
-}
-
-.container {
-  max-width: 720px;
-  margin: 48px auto;
-  padding: 0 24px;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 32px;
-  font-size: 2.2rem;
-}
-
-h2 {
-  margin-top: 32px;
-  margin-bottom: 12px;
-  font-size: 1.3rem;
-  color: var(--text-muted);
-}
-
-.card {
-  background-color: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 6px 0;
-}
-
-.label {
-  color: var(--text-muted);
-}
-
-.status {
-  font-weight: 600;
-}
-
-.status.good {
-  color: var(--good);
-}
-
-.status.warn {
-  color: var(--warn);
-}
-
-.status.bad {
-  color: var(--bad);
-}
-
-button.action {
+  padding: 0;
   width: 100%;
-  margin-top: 8px;
-  padding: 10px;
-  background-color: #1f2433;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-main);
-  font-size: 0.95rem;
-  cursor: pointer;
+  height: 100%;
+  overflow: hidden;
+  background: #0c0f14;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e6e6e6;
 }
 
-button.action:disabled {
-  color: var(--text-muted);
-  cursor: not-allowed;
+/* === APP CONTAINER === */
+.container {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* === HEADER === */
+.header {
+  padding: 12px 20px;
+  border-bottom: 1px solid #222;
+  background: #0f131a;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* === MAIN GRID === */
+.grid {
+  display: grid;
+  grid-template-columns: 320px 1fr 420px;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* === CARDS === */
+.card {
+  background: #111622;
+  border: 1px solid #1e2433;
+  border-radius: 8px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* === STATUS === */
+.status {
+  margin: 4px 0;
+}
+.status.good { color: #00ff9c; }
+.status.bad { color: #ff4d4d; }
+.status.neutral { color: #aaa; }
+
+/* === TERMINAL === */
+.terminal {
+  background: #05070c;
+  border: 1px solid #1a1f2b;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 8px;
+  color: #00ff9c;
+  font-family: monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 260px;
+}
+
+/* === ACTIONS === */
+.actions button {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+/* === LOG PANEL === */
+.log {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-body {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+
+.log-line {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+}
+.log-line.info { color: #aaa; }
+.log-line.warn { color: #ffb400; }
+.log-line.error { color: #ff4d4d; }
+
+.ts {
   opacity: 0.6;
+  min-width: 60px;
+}
+
+/* === INPUT LOCK === */
+textarea, input {
+  resize: none;
 }

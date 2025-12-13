@@ -1,14 +1,16 @@
 use std::process::Command;
 
-pub fn fastboot_present() -> bool {
-    Command::new("fastboot").arg("--version").output().is_ok()
-}
+/// Reboot device from fastboot mode (if applicable)
+pub fn fastboot_reboot() -> Result<(), String> {
+    let out = Command::new("fastboot")
+        .arg("reboot")
+        .output()
+        .map_err(|e| e.to_string())?;
 
-pub fn fastboot_device_connected() -> bool {
-    let out = Command::new("fastboot").arg("devices").output();
-    if let Ok(o) = out {
-        !String::from_utf8_lossy(&o.stdout).trim().is_empty()
+    if out.status.success() {
+        Ok(())
     } else {
-        false
+        Err(String::from_utf8_lossy(&out.stderr).to_string())
     }
 }
+
