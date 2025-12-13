@@ -23,6 +23,11 @@ type DeviceState =
 /* ================= APP ================= */
 
 function App() {
+  /* === PAGE NAV === */
+  const [page, setPage] = createSignal<
+    "dashboard" | "help" | "commands"
+  >("dashboard");
+
   /* === CORE STATE === */
   const [deviceState, setDeviceState] =
     createSignal<DeviceState>("Disconnected");
@@ -37,15 +42,13 @@ function App() {
   const [shellCmd, setShellCmd] = createSignal("");
   const [shellOut, setShellOut] = createSignal("");
   const [shellBusy, setShellBusy] = createSignal(false);
-  const [shellHistory, setShellHistory] = createSignal<string[]>([]);
-  const [histIndex, setHistIndex] = createSignal(-1);
   const [useRoot, setUseRoot] = createSignal(false);
 
   /* === LOGCAT STATE === */
   const [logcatOut, setLogcatOut] = createSignal("");
   const [logcatRunning, setLogcatRunning] = createSignal(false);
 
-  /* === AUTHORITATIVE READY FLAGS === */
+  /* === READY FLAGS === */
   const adbReady = () => deviceState() === "AdbDevice";
   const fastbootReady = () => deviceState() === "Fastboot";
   const preloaderReady = () => deviceState() === "MtkPreloader";
@@ -54,14 +57,18 @@ function App() {
 
   function log(msg: string, level: LogLevel = "info") {
     setLogs(l => [
-      ...l.slice(-200), // cap log growth
+      ...l.slice(-200),
       { ts: new Date().toLocaleTimeString(), level, msg },
     ]);
   }
 
   function logError(e: unknown, context: string) {
     const msg =
-      e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error";
+      e instanceof Error
+        ? e.message
+        : typeof e === "string"
+        ? e
+        : "Unknown error";
     log(`${context}: ${msg}`, "error");
   }
 
@@ -91,14 +98,13 @@ function App() {
         setAnimating(true);
         setDeviceState(event.payload);
         log(`Device state → ${event.payload}`);
-        setTimeout(() => setAnimating(false), 250);
+        setTimeout(() => setAnimating(false), 200);
       }
     );
-
     onCleanup(() => unlisten());
   });
 
-  /* ================= DATA FETCH (NO POLLING) ================= */
+  /* ================= DATA ================= */
 
   const [deviceInfo] = createResource(
     () => adbReady(),
@@ -109,7 +115,7 @@ function App() {
           "get_adb_device_info"
         );
       } catch (e) {
-        logError(e, "Device info fetch failed");
+        logError(e, "Device info failed");
         return null;
       }
     }
@@ -124,7 +130,7 @@ function App() {
     }
   });
 
-  /* ================= SHELL EXECUTION ================= */
+  /* ================= ACTIONS ================= */
 
   async function runShell(cmd: string) {
     if (!cmd.trim() || !adbReady()) return;
@@ -135,9 +141,6 @@ function App() {
     const finalCmd = useRoot()
       ? `su -c "${cmd.replace(/"/g, '\\"')}"`
       : cmd;
-
-    setShellHistory(h => [...h, cmd]);
-    setHistIndex(-1);
 
     try {
       const out = await invoke<string>("adb_shell", {
@@ -151,8 +154,6 @@ function App() {
       setShellBusy(false);
     }
   }
-
-  /* ================= LOGCAT ================= */
 
   async function startLogcat() {
     if (!adbReady()) return;
@@ -178,114 +179,219 @@ function App() {
   return (
     <main class={`container ${animating() ? "fade" : ""}`}>
       <header class="header">
-        <h1>MTK Atlas</h1>
-        <span class="subtitle">
-          Universal MediaTek control & analysis
-        </span>
+        <div>
+          <h1>MTK Atlas</h1>
+          <span class="subtitle">
+            MediaTek device detection & control
+          </span>
+        </div>
+
+        <div class="nav">
+          <button
+            class={page() === "dashboard" ? "active" : ""}
+            onClick={() => setPage("dashboard")}
+          >
+            Dashboard
+          </button>
+          <button
+            class={page() === "commands" ? "active" : ""}
+            onClick={() => setPage("commands")}
+          >
+            Commands
+          </button>
+          <button
+            class={page() === "help" ? "active" : ""}
+            onClick={() => setPage("help")}
+          >
+            Help
+          </button>
+        </div>
       </header>
 
-      {/* === STATUS GRID === */}
-      <section class="grid">
-        <div class="card">
-          <h3>Connection</h3>
-          <div class={`status ${adbReady() ? "good" : "bad"}`}>
-            ADB: {deviceState()}
-          </div>
-          <div class={`status ${fastbootReady() ? "good" : "neutral"}`}>
-            Fastboot: {fastbootReady() ? "Connected" : "Idle"}
-          </div>
-          <div class={`status ${preloaderReady() ? "warn" : "neutral"}`}>
-            MTK Preloader: {preloaderReady() ? "Detected" : "Idle"}
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Device</h3>
-          {deviceInfo() ? (
-            <>
-              <div>
-                <strong>Model:</strong> {deviceInfo()![0]}
+      {/* ================= DASHBOARD ================= */}
+      {page() === "dashboard" && (
+        <>
+          <section class="grid">
+            <div class="card primary">
+              <h3>Connection Status</h3>
+              <div class={`status-box ${adbReady() ? "good" : "bad"}`}>
+                ADB: {deviceState()}
               </div>
-              <div>
-                <strong>Serial:</strong> {deviceInfo()![1]}
+              <div class={`status-box ${fastbootReady() ? "good" : "neutral"}`}>
+                Fastboot: {fastbootReady() ? "Connected" : "Idle"}
               </div>
-            </>
-          ) : (
-            <div class="muted">No device</div>
-          )}
-        </div>
-
-        <div class="card">
-          <h3>Capabilities</h3>
-          <pre class="caps">
-            {JSON.stringify(mtkCaps(), null, 2)}
-          </pre>
-        </div>
-      </section>
-
-      {/* === ADB SHELL === */}
-      <section class="card">
-        <h3>ADB Shell</h3>
-
-        <textarea
-          rows={3}
-          placeholder="Enter adb shell command"
-          disabled={!adbReady()}
-          value={shellCmd()}
-          onInput={e => setShellCmd(e.currentTarget.value)}
-          onKeyDown={e => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              runShell(shellCmd());
-              setShellCmd("");
-            }
-          }}
-        />
-
-        <div style={{ "margin-top": "0.5rem" }}>
-          <label>
-            <input
-              type="checkbox"
-              disabled={!adbReady()}
-              checked={useRoot()}
-              onChange={e => setUseRoot(e.currentTarget.checked)}
-            />{" "}
-            Run as root (su)
-          </label>
-        </div>
-
-        <pre class="terminal">
-          {shellBusy() ? "Running…" : shellOut()}
-        </pre>
-      </section>
-
-      {/* === LOGCAT === */}
-      <section class="card">
-        <h3>Logcat</h3>
-        <button
-          disabled={!adbReady() || logcatRunning()}
-          onClick={startLogcat}
-        >
-          {logcatRunning() ? "Collecting…" : "Fetch logcat"}
-        </button>
-        <pre class="terminal">{logcatOut()}</pre>
-      </section>
-
-      {/* === LOG PANEL === */}
-      <section class="card log">
-        <h3>Activity Log</h3>
-        <div class="log-body">
-          {logs().length === 0 && (
-            <div class="muted">No activity yet</div>
-          )}
-          {logs().map(l => (
-            <div class={`log-line ${l.level}`}>
-              <span class="ts">{l.ts}</span>
-              <span class="msg">{l.msg}</span>
+              <div class={`status-box ${preloaderReady() ? "warn" : "neutral"}`}>
+                MTK Preloader: {preloaderReady() ? "Detected" : "Idle"}
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+
+            <div class="card">
+              <h3>Connected Device</h3>
+              {deviceInfo() ? (
+                <>
+                  <div><strong>Model:</strong> {deviceInfo()![0]}</div>
+                  <div><strong>Serial:</strong> {deviceInfo()![1]}</div>
+                </>
+              ) : (
+                <div class="muted">No device connected</div>
+              )}
+            </div>
+
+            <div class="card">
+              <h3>MTK Capabilities</h3>
+          <div class="caps-grid">
+  <div class={`cap ${mtkCaps()?.adb ? "ok" : "off"}`}>
+    <span class="cap-title">ADB</span>
+    <span class="cap-desc">
+      {mtkCaps()?.adb ? "Available" : "Unavailable"}
+    </span>
+  </div>
+
+  <div class={`cap ${mtkCaps()?.fastboot ? "ok" : "off"}`}>
+    <span class="cap-title">Fastboot</span>
+    <span class="cap-desc">
+      {mtkCaps()?.fastboot ? "Available" : "Unavailable"}
+    </span>
+  </div>
+
+  <div class={`cap ${mtkCaps()?.preloader ? "warn" : "off"}`}>
+    <span class="cap-title">Preloader</span>
+    <span class="cap-desc">
+      {mtkCaps()?.preloader ? "Detected" : "Idle"}
+    </span>
+  </div>
+
+  <div class={`cap ${mtkCaps()?.brom ? "danger" : "off"}`}>
+    <span class="cap-title">BROM</span>
+    <span class="cap-desc">
+      {mtkCaps()?.brom ? "Active" : "Inactive"}
+    </span>
+  </div>
+</div>
+
+<div class="caps-desc">
+  {mtkCaps()?.description}
+</div>
+
+            </div>
+          </section>
+
+          <section class="card">
+            <h3>ADB Shell</h3>
+            <textarea
+              rows={3}
+              placeholder="Enter adb shell command"
+              disabled={!adbReady()}
+              value={shellCmd()}
+              onInput={e => setShellCmd(e.currentTarget.value)}
+              onKeyDown={e => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  runShell(shellCmd());
+                  setShellCmd("");
+                }
+              }}
+            />
+            <label>
+              <input
+                type="checkbox"
+                disabled={!adbReady()}
+                checked={useRoot()}
+                onChange={e => setUseRoot(e.currentTarget.checked)}
+              />{" "}
+              Run as root (su)
+            </label>
+            <pre class="terminal">
+              {shellBusy() ? "Running…" : shellOut()}
+            </pre>
+          </section>
+
+          <section class="card">
+            <h3>Logcat</h3>
+            <button
+              disabled={!adbReady() || logcatRunning()}
+              onClick={startLogcat}
+            >
+              {logcatRunning() ? "Collecting…" : "Fetch logcat"}
+            </button>
+            <pre class="terminal">{logcatOut()}</pre>
+          </section>
+        </>
+      )}
+
+      {/* ================= COMMANDS ================= */}
+      {page() === "commands" && (
+        <section class="help">
+          <h2>Common Commands Reference</h2>
+
+          <div class="block">
+            <h4>ADB Commands (Android Running)</h4>
+            <p><code>adb devices</code> — List connected Android devices</p>
+            <p><code>adb shell</code> — Open a shell on the device</p>
+            <p><code>adb reboot</code> — Reboot the device normally</p>
+            <p><code>adb reboot recovery</code> — Reboot into recovery</p>
+            <p><code>adb reboot bootloader</code> — Reboot into fastboot</p>
+            <p><code>adb logcat</code> — View Android system logs</p>
+          </div>
+
+          <div class="block">
+            <h4>Fastboot Commands (Bootloader Mode)</h4>
+            <p><code>fastboot devices</code> — List fastboot devices</p>
+            <p><code>fastboot getvar all</code> — Show device variables</p>
+            <p><code>fastboot reboot</code> — Reboot device</p>
+            <p><code>fastboot reboot-bootloader</code> — Restart fastboot</p>
+            <p><code>fastboot getvar current-slot</code> — Show active slot</p>
+          </div>
+
+          <div class="block">
+            <h4>MTK / Preloader Notes</h4>
+            <p>
+              MediaTek preloader (BROM) operations are extremely low-level.
+              MTK Atlas intentionally limits access to prevent accidental
+              damage. Advanced features will be clearly marked.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* ================= HELP ================= */}
+      {page() === "help" && (
+        <section class="help">
+          <h2>MTK Atlas Help</h2>
+
+          <div class="block">
+            <h4>ADB (Android Debug Bridge)</h4>
+            <p>
+              Used when Android is booted. Provides shell access, logcat,
+              and reboot control. Requires authorization on the device.
+            </p>
+          </div>
+
+          <div class="block">
+            <h4>Fastboot Mode</h4>
+            <p>
+              Bootloader mode used for flashing and slot management.
+              Android is not running in this state.
+            </p>
+          </div>
+
+          <div class="block">
+            <h4>MTK Preloader / BROM</h4>
+            <p>
+              The earliest MediaTek boot stage. Very powerful and dangerous.
+              MTK Atlas enforces safety limits by design.
+            </p>
+          </div>
+
+          <div class="block">
+            <h4>Safety Model</h4>
+            <p>
+              Commands are only enabled when the device is in the correct
+              state to avoid soft bricks or data loss.
+            </p>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

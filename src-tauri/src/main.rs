@@ -1,103 +1,66 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod app_state;
 mod adb;
-mod fastboot;
-mod mtk;
+mod app_state;
 mod detection_service;
+mod fastboot;
+mod logger;
+mod root;
+
+use std::sync::{Arc, Mutex};
+use tauri::{Manager, State};
 
 use app_state::AppState;
-use detection_service::DeviceState;
-use tauri::State;
+use detection_service::{DeviceState, start_detection_loop};
 
 #[tauri::command]
-fn get_adb_status(state: State<AppState>) -> String {
-    match *state.device_state.lock().unwrap() {
-        DeviceState::AdbDevice => "Device connected".into(),
-        DeviceState::AdbUnauthorized => "Unauthorized".into(),
-        _ => "Not connected".into(),
-    }
+fn get_device_state(state: State<AppState>) -> DeviceState {
+    state.device_state.lock().unwrap().clone()
 }
 
 #[tauri::command]
-fn adb_shell(command: String) -> Result<String, String> {
-    adb::adb_shell(&command)
+fn get_root_state(state: State<AppState>) -> Option<root::RootStatus> {
+    state.root_state.lock().unwrap().clone()
 }
 
 #[tauri::command]
-fn get_adb_device_info() -> Option<(String, String)> {
-    adb::adb_device_info()
+fn adb_shell_cmd(cmd: String) -> Result<String, String> {
+    adb::adb_shell(&cmd)
 }
 
 #[tauri::command]
-fn get_fastboot_status(state: State<AppState>) -> bool {
-    matches!(
-        *state.device_state.lock().unwrap(),
-        DeviceState::Fastboot
-    )
-}
-
-#[tauri::command]
-fn get_mtk_state(state: State<AppState>) -> String {
-    match *state.device_state.lock().unwrap() {
-        DeviceState::MtkPreloader => "MTK Preloader".into(),
-        _ => "Idle".into(),
-    }
-}
-
-#[tauri::command]
-fn get_mtk_capabilities(
-    state: State<AppState>,
-) -> mtk::capabilities::MtkCapabilities {
-    let device_state = state.device_state.lock().unwrap();
-
-    let mtk_state_str = match *device_state {
-        DeviceState::MtkPreloader => "MTK Preloader",
-        _ => "Idle",
-    };
-
-    mtk::capabilities::evaluate(
-        matches!(*device_state, DeviceState::AdbDevice),
-        matches!(*device_state, DeviceState::Fastboot),
-        mtk_state_str,
-    )
-}
-
-#[tauri::command]
-fn adb_reboot() -> Result<(), String> {
-    adb::adb_reboot()
-}
-
-#[tauri::command]
-fn adb_reboot_recovery() -> Result<(), String> {
-    adb::adb_reboot_recovery()
-}
-
-#[tauri::command]
-fn adb_reboot_bootloader() -> Result<(), String> {
-    adb::adb_reboot_bootloader()
+fn fastboot_cmd(cmd: String) -> Result<String, String> {
+    fastboot::fastboot_cmd(&cmd)
 }
 
 fn main() {
+    let app_state = AppState::new();
+
+    let detection_state = Arc::new(Mutex::new(DeviceState::NoDevice));
+    start_detection_loop(detection_state.clone());
+
     tauri::Builder::default()
-        .manage(AppState {
-            device_state: std::sync::Mutex::new(DeviceState::Disconnected),
-        })
-        .setup(|app| {
-            detection_service::start_detection_service(app.handle().clone());
+        .manage(app_state)
+        .setup(move |app| {
+            let handle = app.handle();
+            let state_ref = handle.state::<AppState>();
+
+            // Sync detection loop → AppState
+            std::thread::spawn(move || loop {
+                let detected = detection_state.lock().unwrap().clone();
+                let mut stored = state_ref.device_state.lock().unwrap();
+                *stored = detected;
+                std::thread::sleep(std::time::Duration::from_millis(500));
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            get_adb_status,
-            get_adb_device_info,
-            get_fastboot_status,
-            get_mtk_state,
-            get_mtk_capabilities,
-            adb_reboot,
-            adb_reboot_recovery,
-            adb_reboot_bootloader,
-            adb_shell,
+            get_device_state,
+            get_root_state,
+            adb_shell_cmd,
+            fastboot_cmd
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("error running MTK Atlas");
 }
