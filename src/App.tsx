@@ -14,6 +14,9 @@ function App() {
   const [fastbootConnected] = createResource(() => invoke<boolean>("get_fastboot_status"));
 
   const adbConnected = () => adbStatus() === "Device connected";
+const [mtkState] = createResource(() =>
+  invoke<string>("get_mtk_state")
+);
 
   async function run(action: string, cmd: string) {
     setConfirm(null);
@@ -48,6 +51,29 @@ function App() {
         <div class="row"><span class="label">Fastboot</span><span>{fastbootConnected() ? "Connected" : "Not detected"}</span></div>
       </div>
 
+<h2>MediaTek Mode</h2>
+
+<div class="card">
+  <div class="row">
+    <span class="label">MTK state</span>
+    <span
+      class={
+        "status " +
+        (mtkState() === "MTK Preloader detected"
+          ? "warn"
+          : mtkState() === "MTK BootROM detected"
+          ? "bad"
+          : "")
+      }
+    >
+      {mtkState.loading ? "Detecting…" : mtkState()}
+    </span>
+  </div>
+
+  <p class="label" style={{ "margin-top": "10px" }}>
+    Preloader and BootROM modes are time-limited and device-restricted.
+  </p>
+</div>
       <h2>Actions</h2>
       <div class="card">
         <button class="action" disabled={!adbConnected()} onClick={() => setConfirm("reboot")}>Reboot</button>

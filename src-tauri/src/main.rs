@@ -6,6 +6,13 @@ mod adb;
 mod fastboot;
 mod pipeline;
 mod executor;
+mod mtk;
+
+#[tauri::command]
+fn get_mtk_state() -> String {
+    let state = mtk::detect_mtk_state();
+    mtk::mtk_state_label(&state).to_string()
+}
 
 #[tauri::command]
 fn list_pipelines() -> Vec<pipeline::FlashPipeline> {
@@ -96,6 +103,8 @@ run_pipeline,
             adb_reboot_cmd,
             adb_reboot_recovery_cmd,
             adb_reboot_bootloader_cmd,
+get_mtk_state,
+
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
