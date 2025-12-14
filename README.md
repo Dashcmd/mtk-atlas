@@ -1,207 +1,78 @@
 # MTK Atlas
 
-**MTK Atlas** is a cross-platform desktop application for **MediaTek (MTK) Android device detection, inspection, and controlled interaction**.
+**MTK Atlas** is a cross-platform desktop utility for detecting, managing, and interacting with Android devices — with a primary focus on MediaTek (MTK) platforms.
 
-It provides a **state-aware, safety-gated interface** for ADB and Fastboot operations, with a focus on reliability, transparency, and preventing destructive mistakes.
-
-Built with **Tauri (Rust backend)** and a modern **SolidJS frontend**, MTK Atlas is designed to be fast, lightweight, and predictable.
+Built with **Tauri + Rust + SolidJS**, MTK Atlas prioritizes reliability, correctness, and low-level device state awareness over fragile scripting.
 
 ---
 
-## Key Features
+## Features
 
-### Device Detection & State Awareness
+### Device Detection
 - Automatic USB state detection
-- Real-time device state tracking:
+- Live device mode tracking:
   - Disconnected
   - ADB (authorized / unauthorized)
   - Fastboot
   - MTK Preloader
-- UI behavior is gated based on **actual device state**
+- Non-blocking detection loop
 
-### Managed ADB / Fastboot
-- Built-in **platform-tools installer**
-- Uses a **verified, app-managed** copy of ADB and Fastboot
-- No dependency on system PATH
-- No modification of system environment
-
-### Safe Command Execution
-- ADB shell execution (state-gated)
-- Fastboot command execution (expert-mode gated)
-- Partition flashing with **risk classification**
-- Strict rejection of commands in unsafe states
+### Command Execution
+- Raw **ADB** command runner
+- Raw **Fastboot** command runner
+- Device-state-gated execution (prevents invalid operations)
+- Structured output and error reporting
 
 ### Logging & Diagnostics
-- Live logging panel with severity levels
-- Timestamped events
-- One-click diagnostics ZIP export
-- Designed for debugging and support workflows
+- Live, timestamped logging panel
+- Log levels (info / warning / error)
+- Exportable diagnostics for troubleshooting
 
-### Architecture-First Design
-- Non-blocking backend architecture
-- Event-driven device detection loop
-- Explicit state ownership
-- Designed to be extended (profiles, pipelines, expert tools)
-
----
-
-## Platform Support
-
-| Platform | Status |
-|--------|--------|
-| Windows | ✅ Supported |
-| Linux  | 🟡 Planned |
-| macOS  | 🟡 Planned |
-
-> Current releases focus on Windows. Cross-platform support is an explicit design goal.
+### Architecture
+- Rust backend for hardware access and process execution
+- SolidJS frontend for fast, reactive UI
+- No background services
+- No network communication
+- Runs entirely locally
 
 ---
 
-## Platform-Tools Management (ADB / Fastboot)
+## Supported Platforms
 
-MTK Atlas manages its own copy of Android **platform-tools** to ensure consistent behavior across systems.
-
-### Why this matters
-
-System-installed ADB/Fastboot often causes issues:
-- Missing or outdated binaries
-- PATH misconfiguration
-- Conflicts with other Android tooling
-
-MTK Atlas avoids these problems entirely.
-
-### How it works
-
-On first use (or when tools are missing), MTK Atlas can:
-
-1. Download the official platform-tools package from Google
-2. Verify the download using **SHA-256 checksum validation**
-3. Extract only the required binaries
-4. Store them in an application-managed directory
-5. Use these binaries exclusively for all operations
-
-### Installation flow
-
-- Open the **Dashboard**
-- Click **Install Platform Tools**
-- Observe live progress:
-  - Download
-  - Verification
-  - Extraction
-  - Completion
-- Once installed, ADB and Fastboot features unlock automatically
-
-### Storage location (Windows)
-
-```
-%LOCALAPPDATA%\MTKAtlas\platform-tools\
-```
-
-### Safety guarantees
-
-- Only official Google binaries are used
-- Checksum verification is enforced
-- MTK Atlas does not modify your system PATH
-- Destructive actions remain device-state gated
+- **Windows** (x64)
+- **Linux** (Debian / Ubuntu)
+- **macOS** (Intel & Apple Silicon)
 
 ---
 
-## Safety Model
+## Requirements
 
-MTK Atlas is designed to **prevent common causes of device damage**:
-
-- Commands are rejected if the device is in the wrong state
-- Fastboot flashing requires explicit expert mode
-- High-risk partitions are classified and surfaced clearly
-- No “blind” command execution
-
-This tool favors **correctness over convenience**.
+- Android platform-tools (`adb`, `fastboot`)  
+  MTK Atlas can detect and assist with installation if missing.
 
 ---
 
-## What MTK Atlas Is (and Is Not)
+## Installation
 
-### It **is**
-- A diagnostic and control interface
-- A safe ADB/Fastboot frontend
-- A foundation for advanced MTK tooling
+Download the latest release from **GitHub Releases**:
 
-### It is **not**
-- A one-click rooting tool
-- A bypass for locked bootloaders
-- A replacement for vendor flashing tools
-- A guarantee against device damage
+👉 https://github.com/Dashcmd/mtk-atlas/releases
 
-You are responsible for understanding the commands you run.
+No installer required.
 
 ---
 
-## Development Status
+## Usage Notes
 
-MTK Atlas is under **active development**.
-
-Current focus areas:
-- Platform-tools management
-- Device detection stability
-- UI gating and logging
-- Core ADB/Fastboot workflows
-
-Planned features:
-- Device profiles
-- Flash pipelines
-- Kernel / boot analysis
-- Advanced MTK capability matrix
-- Cross-platform builds
-
----
-
-## Building From Source
-
-### Prerequisites
-- Rust (stable)
-- Node.js (LTS)
-- Tauri prerequisites for your platform
-
-### Build (development)
-```bash
-npm install
-npm run tauri dev
-```
-
-### Build (release)
-```bash
-npm run tauri build
-```
-
----
-
-## Contributing
-
-Contributions are welcome, especially in the areas of:
-- Cross-platform support
-- MTK-specific detection logic
-- UI/UX improvements
-- Documentation and testing
-
-Please keep changes:
-- Modular
-- Well-documented
-- Safety-conscious
-
----
-
-## License
-
-This project is open-source.  
-License details will be finalized prior to a stable release.
+- ADB commands are only enabled when a device is authorized
+- Fastboot commands are only enabled when in Fastboot mode
+- MTK Preloader detection is read-only (no flashing performed)
 
 ---
 
 ## Disclaimer
 
-MTK Atlas interacts with low-level Android tooling.
+MTK Atlas is a **diagnostic and development tool**.
 
-Improper use **can permanently damage devices**.
-
-The author provides this software **as-is**, without warranty.  
-Use at your own risk.
+Flashing firmware, unlocking bootloaders, or modifying partitions can permanently damage devices.  
+You are solely responsible for how you use this software
