@@ -1,18 +1,19 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use crate::detection_service::DeviceState;
+use crate::root::RootStatus;
 
 pub struct AppState {
     pub device_state: Mutex<DeviceState>,
-    pub root_state: Mutex<Option<crate::root::RootStatus>>,
+    pub root_state: Mutex<Option<RootStatus>>,
     pub tools_installed: Mutex<bool>,
 }
 
 impl AppState {
-    pub fn new() -> Arc<Self> {
-        Arc::new(Self {
+    pub fn new() -> Self {
+        Self {
             device_state: Mutex::new(DeviceState::Disconnected),
             root_state: Mutex::new(None),
             tools_installed: Mutex::new(false),
-        })
+        }
     }
 }
