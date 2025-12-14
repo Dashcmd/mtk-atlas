@@ -1,16 +1,28 @@
 use std::process::Command;
+use tauri::AppHandle;
+use crate::logger::emit_log;
 
-pub fn fastboot_cmd(command: &str) -> Result<String, String> {
-    let args: Vec<&str> = command.split_whitespace().collect();
+/// Execute a fastboot command.
+/// ALWAYS considered dangerous.
+pub fn fastboot_cmd(
+    app: &AppHandle,
+    args: &str,
+) -> Result<String, String> {
+    emit_log(app, "warn", format!("Fastboot → {}", args));
 
     let output = Command::new("fastboot")
-        .args(args)
+        .args(args.split_whitespace())
         .output()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            emit_log(app, "error", format!("Fastboot spawn failed: {}", e));
+            e.to_string()
+        })?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
     } else {
-        Err(String::from_utf8_lossy(&output.stderr).to_string())
+        let err = String::from_utf8_lossy(&output.stderr).to_string();
+        emit_log(app, "error", format!("Fastboot error: {}", err));
+        Err(err)
     }
 }
