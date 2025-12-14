@@ -8,7 +8,7 @@ mod fastboot;
 mod logger;
 mod root;
 mod commands;
-
+mod process;
 
 use crate::{
     app_state::AppState,
@@ -17,18 +17,22 @@ use crate::{
 };
 
 fn main() {
+    // 1️⃣ Create shared state FIRST
+    let app_state = AppState::new();
+
     tauri::Builder::default()
-        .setup(|app| {
+        // 2️⃣ Manage it before setup
+        .manage(app_state.clone())
+        .setup(move |app| {
             let app_handle = app.handle();
 
             emit_log(&app_handle, "info", "MTK Atlas starting");
 
-            // Start passive device detection loop
-            start_detection_loop(app_handle.clone());
+            // 3️⃣ Start detection ONCE with state
+            start_detection_loop(app_handle.clone(), app_state.clone());
 
             Ok(())
         })
-        .manage(AppState::new())
         .invoke_handler(tauri::generate_handler![
             commands::adb_run,
             commands::fastboot_run,
@@ -36,7 +40,6 @@ fn main() {
             commands::export_diagnostics,
             commands::platform_tools_installed_cmd,
             commands::install_platform_tools_cmd,
-
         ])
         .run(tauri::generate_context!())
         .expect("error running MTK Atlas");
