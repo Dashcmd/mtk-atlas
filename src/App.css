@@ -1,111 +1,287 @@
-/* === GLOBAL LOCKDOWN === */
-html, body {
-  margin: 0;
-  padding: 0;
+/* ================= ROOT THEME ================= */
+
+:root {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --panel-border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --good: #16a34a;
+  --warn: #d97706;
+  --bad: #dc2626;
+  --terminal-bg: #020617;
+  --terminal-text: #e5e7eb;
+}
+
+[data-theme="dark"] {
+  --bg: #020617;
+  --panel: #020617;
+  --panel-border: #1e293b;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #60a5fa;
+  --terminal-bg: #020617;
+  --terminal-text: #e5e7eb;
+}
+
+/* ================= BASE ================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  background: #0c0f14;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #e6e6e6;
+  margin: 0;
 }
 
-/* === APP CONTAINER === */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ================= LAYOUT ================= */
+
 .container {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100vh;
-  width: 100vw;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
 }
 
-/* === HEADER === */
+/* ================= HEADER ================= */
+
 .header {
-  padding: 12px 20px;
-  border-bottom: 1px solid #222;
-  background: #0f131a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 0.03em;
 }
 
 .subtitle {
-  font-size: 0.85rem;
-  opacity: 0.7;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-/* === MAIN GRID === */
+.nav button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  margin-left: 16px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav button.active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ================= CARDS ================= */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+}
+
+.card.primary {
+  border-left: 4px solid var(--accent);
+}
+
 .grid {
   display: grid;
-  grid-template-columns: 320px 1fr 420px;
-  gap: 12px;
-  padding: 12px;
-  overflow: hidden;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
 }
 
-/* === CARDS === */
-.card {
-  background: #111622;
-  border: 1px solid #1e2433;
-  border-radius: 8px;
-  padding: 12px;
-  overflow: hidden;
-}
+/* ================= STATUS ================= */
 
-/* === STATUS === */
-.status {
-  margin: 4px 0;
-}
-.status.good { color: #00ff9c; }
-.status.bad { color: #ff4d4d; }
-.status.neutral { color: #aaa; }
-
-/* === TERMINAL === */
-.terminal {
-  background: #05070c;
-  border: 1px solid #1a1f2b;
-  border-radius: 6px;
+.status-box {
   padding: 10px;
-  margin-top: 8px;
-  color: #00ff9c;
-  font-family: monospace;
-  font-size: 0.85rem;
-  white-space: pre-wrap;
-  overflow-y: auto;
-  max-height: 260px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-/* === ACTIONS === */
-.actions button {
-  display: block;
+.status-box.good {
+  background: rgba(22,163,74,0.12);
+  color: var(--good);
+}
+
+.status-box.warn {
+  background: rgba(217,119,6,0.12);
+  color: var(--warn);
+}
+
+.status-box.bad {
+  background: rgba(220,38,38,0.12);
+  color: var(--bad);
+}
+
+.status-box.neutral {
+  background: rgba(148,163,184,0.12);
+  color: var(--muted);
+}
+
+/* ================= INPUTS ================= */
+
+textarea,
+input {
   width: 100%;
-  margin-bottom: 6px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  margin-bottom: 10px;
 }
 
-/* === LOG PANEL === */
-.log {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+textarea:disabled,
+input:disabled {
+  opacity: 0.5;
 }
 
-.log-body {
-  flex: 1;
+/* ================= TERMINAL ================= */
+
+.terminal {
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  padding: 12px;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  max-height: 240px;
   overflow-y: auto;
-  font-size: 0.8rem;
+  border: 1px solid #020617;
 }
 
-.log-line {
-  display: flex;
+/* ================= BUTTONS ================= */
+
+button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, #ffffff, #f1f5f9);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #e5e7eb;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ================= CAPS ================= */
+
+.caps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  padding: 2px 0;
-}
-.log-line.info { color: #aaa; }
-.log-line.warn { color: #ffb400; }
-.log-line.error { color: #ff4d4d; }
-
-.ts {
-  opacity: 0.6;
-  min-width: 60px;
 }
 
-/* === INPUT LOCK === */
-textarea, input {
-  resize: none;
+.cap {
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cap.ok {
+  background: rgba(22,163,74,0.12);
+  color: var(--good);
+}
+
+.cap.warn {
+  background: rgba(217,119,6,0.12);
+  color: var(--warn);
+}
+
+.cap.danger {
+  background: rgba(220,38,38,0.15);
+  color: var(--bad);
+}
+
+.cap.off {
+  background: rgba(148,163,184,0.1);
+  color: var(--muted);
+}
+
+/* ================= FASTBOOT DANGER ================= */
+
+.card.fastboot {
+  border: 1px solid #7f1d1d;
+  background: linear-gradient(
+    135deg,
+    rgba(127,29,29,0.2),
+    rgba(127,29,29,0.05)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(185,28,28,0.3),
+    0 0 25px rgba(185,28,28,0.2);
+  position: relative;
+}
+
+.card.fastboot::before {
+  content: "FASTBOOT MODE — DESTRUCTIVE OPERATIONS POSSIBLE";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #7f1d1d;
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  padding: 6px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+.fastboot input {
+  border: 1px solid #7f1d1d;
+  background: rgba(127,29,29,0.08);
+}
+
+.fastboot button {
+  background: linear-gradient(180deg, #7f1d1d, #450a0a);
+  border: 1px solid #991b1b;
+  color: #fff;
+}
+
+.fastboot .terminal {
+  border: 1px solid #7f1d1d;
+  color: #fecaca;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* ================= HELP ================= */
+
+.help {
+  line-height: 1.6;
+}
+
+.help code {
+  background: rgba(148,163,184,0.12);
+  padding: 4px 6px;
+  border-radius: 6px;
 }

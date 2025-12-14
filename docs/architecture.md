@@ -2,47 +2,21 @@
 
 
 
-MTK Atlas is a cross-platform desktop application built with:
+MTK Atlas uses a local-only Tauri architecture.
 
 
 
-\- Tauri (Rust backend)
+\- SolidJS frontend
 
-\- SolidJS (TypeScript frontend)
+\- Rust backend
 
-\- External Android tools (ADB / Fastboot)
+\- No network communication
 
-
-
-\## Design Goals
+\- All device access is gated by detected state
 
 
 
-\- Safety-first behavior
+Device detection runs in a non-blocking loop and emits state changes to the UI.
 
-\- Device profile–based feature gating
-
-\- Kernel capability detection
-
-\- No proprietary binaries
-
-\- No hidden execution
-
-
-
-\## High-Level Structure
-
-
-
-\- Frontend: SolidJS UI panels
-
-\- Backend: Rust services exposed via Tauri commands
-
-\- Data: Device profiles and scripts stored as readable files
-
-
-
-This document will evolve as MTK Atlas grows.
-
-
+TK Atlas grows.
 

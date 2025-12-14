@@ -1,17 +1,16 @@
-use std::{thread, time::Duration};
-
-use tauri::{AppHandle, Emitter, Manager};
 use serde::Serialize;
-
-use crate::{
-    adb,
-    adb::AdbState,
-    app_state::AppState,
+use std::{
+    sync::Arc,
+    thread,
+    time::Duration,
 };
 
-/// High-level device state exposed to the UI.
-/// This is the ONLY state the frontend should depend on.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+use tauri::{AppHandle, Emitter};
+
+use crate::process::run;
+use crate::app_state::AppState;
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum DeviceState {
     Disconnected,
     AdbUnauthorized,
@@ -20,44 +19,46 @@ pub enum DeviceState {
     MtkPreloader,
 }
 
-/// Starts the background detection service.
-/// Polls device state and emits events ONLY when state changes.
-pub fn start_detection_service(app: AppHandle) {
-    // IMPORTANT:
-    // Clone the AppHandle so it can be moved into a 'static thread.
-    let app_handle = app.clone();
+const POLL_INTERVAL_MS: u64 = 750;
 
+pub fn start_detection_loop(app: AppHandle, state: Arc<AppState>) {
     thread::spawn(move || {
-        let state = app_handle.state::<AppState>();
         let mut last_state = DeviceState::Disconnected;
 
         loop {
-            let new_state = detect_device_state();
+            let next_state = detect_state();
 
-            if new_state != last_state {
-                // Update centralized AppState
+            if next_state != last_state {
                 {
-                    let mut locked = state.device_state.lock().unwrap();
-                    *locked = new_state.clone();
+                    let mut guard = state.device_state.lock().unwrap();
+                    *guard = next_state.clone();
                 }
 
-                // Notify frontend
-                let _ = app_handle.emit("device_state_changed", new_state.clone());
-
-                last_state = new_state;
+                let _ = app.emit("device-state", next_state.clone());
+                last_state = next_state;
             }
 
-            thread::sleep(Duration::from_millis(800));
+            thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
         }
     });
 }
 
-/// Determines the current device state.
-/// ADB is authoritative for now.
-fn detect_device_state() -> DeviceState {
-    match adb::adb_state() {
-        AdbState::Authorized => DeviceState::AdbDevice,
-        AdbState::Unauthorized => DeviceState::AdbUnauthorized,
-        _ => DeviceState::Disconnected,
+fn detect_state() -> DeviceState {
+    // 1) Fastboot
+    if let Ok(out) = run("fastboot", &["devices"]) {
+        if !String::from_utf8_lossy(&out.stdout).trim().is_empty() {
+            return DeviceState::Fastboot;
+        }
     }
+
+    // 2) ADB
+    if let Ok(out) = run("adb", &["get-state"]) {
+        match String::from_utf8_lossy(&out.stdout).trim() {
+            "device" => return DeviceState::AdbDevice,
+            "unauthorized" => return DeviceState::AdbUnauthorized,
+            _ => {}
+        }
+    }
+
+    DeviceState::Disconnected
 }

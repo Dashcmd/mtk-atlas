@@ -1,108 +1,61 @@
 use std::process::Command;
-
-/// ADB connection / authorization state.
-/// This is the ONLY authoritative signal for detection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AdbState {
-    NoServer,
-    NoDevice,
-    Unauthorized,
-    Authorized,
-}
+use tauri::AppHandle;
+use crate::logger::emit_log;
 
 /// Execute a single adb shell command.
-/// ON-DEMAND ONLY. Does NOT participate in detection.
-pub fn adb_shell(command: &str) -> Result<String, String> {
+/// HARD-GATED by caller (ADB must be authorized).
+pub fn adb_shell(
+    app: &AppHandle,
+    command: &str,
+) -> Result<String, String> {
+    emit_log(app, "info", format!("ADB shell → {}", command));
+
     let output = Command::new("adb")
         .args(["shell", command])
         .output()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            emit_log(app, "error", format!("ADB spawn failed: {}", e));
+            e.to_string()
+        })?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
     } else {
-        Err(String::from_utf8_lossy(&output.stderr).to_string())
+        let err = String::from_utf8_lossy(&output.stderr).to_string();
+        emit_log(app, "error", format!("ADB error: {}", err));
+        Err(err)
     }
 }
 
 /// One-shot device info query.
-/// HARD-GATED: only returns data if ADB is connected AND authorized.
-pub fn adb_device_info() -> Option<(String, String)> {
-    match adb_state() {
-        AdbState::Authorized => {}
-        _ => return None,
+/// Returns (model, serial) if authorized.
+pub fn adb_device_info(
+    app: &AppHandle,
+) -> Option<(String, String)> {
+    let state = Command::new("adb")
+        .args(["get-state"])
+        .output()
+        .ok()?;
+
+    if String::from_utf8_lossy(&state.stdout).trim() != "device" {
+        emit_log(app, "warn", "ADB not authorized");
+        return None;
     }
 
     let model = Command::new("adb")
         .args(["shell", "getprop", "ro.product.model"])
         .output()
-        .ok()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())?;
+        .ok()?;
 
     let serial = Command::new("adb")
-        .arg("get-serialno")
+        .args(["get-serialno"])
         .output()
-        .ok()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())?;
+        .ok()?;
 
-    if model.is_empty() || serial.is_empty() {
-        None
-    } else {
-        Some((model, serial))
-    }
-}
+    emit_log(app, "info", "ADB device info queried");
 
-/// Reboot device normally (ADB).
-pub fn adb_reboot() -> Result<(), String> {
-    run_adb(&["reboot"])
-}
-
-/// Reboot device into recovery (ADB).
-pub fn adb_reboot_recovery() -> Result<(), String> {
-    run_adb(&["reboot", "recovery"])
-}
-
-/// Reboot device into bootloader / fastboot (ADB).
-pub fn adb_reboot_bootloader() -> Result<(), String> {
-    run_adb(&["reboot", "bootloader"])
-}
-
-/// Internal helper for executing adb commands.
-/// MUST NOT be used for detection.
-fn run_adb(args: &[&str]) -> Result<(), String> {
-    let out = Command::new("adb")
-        .args(args)
-        .output()
-        .map_err(|e| e.to_string())?;
-
-    if out.status.success() {
-        Ok(())
-    } else {
-        Err(String::from_utf8_lossy(&out.stderr).to_string())
-    }
-}
-
-/// Returns the current ADB authorization state.
-/// Uses `adb devices` to correctly detect authorization.
-pub fn adb_state() -> AdbState {
-    let output = Command::new("adb")
-        .args(["devices"])
-        .output();
-
-    let Ok(output) = output else {
-        return AdbState::NoServer;
-    };
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-
-    for line in stdout.lines() {
-        if line.ends_with("\tunauthorized") {
-            return AdbState::Unauthorized;
-        }
-        if line.ends_with("\tdevice") {
-            return AdbState::Authorized;
-        }
-    }
-
-    AdbState::NoDevice
+    Some((
+        String::from_utf8_lossy(&model.stdout).trim().to_string(),
+        String::from_utf8_lossy(&serial.stdout).trim().to_string(),
+    ))
 }
