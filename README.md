@@ -1,8 +1,8 @@
 # MTK Atlas
 
-**MTK Atlas** is a cross-platform desktop utility for detecting, managing, and interacting with Android devices — with a primary focus on MediaTek (MTK) platforms.
+**MTK Atlas** is a cross-platform desktop utility for detecting, managing, and interacting with Android devices — with a primary focus on **MediaTek (MTK)** platforms.
 
-Built with **Tauri + Rust + SolidJS**, MTK Atlas prioritizes reliability, correctness, and low-level device state awareness over fragile scripting.
+Built with **Tauri + Rust + SolidJS**, MTK Atlas prioritizes reliability, correctness, and low-level device state awareness over fragile scripting or opaque vendor tools.
 
 ---
 
@@ -14,13 +14,13 @@ Built with **Tauri + Rust + SolidJS**, MTK Atlas prioritizes reliability, correc
   - Disconnected
   - ADB (authorized / unauthorized)
   - Fastboot
-  - MTK Preloader
-- Non-blocking detection loop
+  - MTK Preloader (analysis-only)
+- Non-blocking, rate-limited detection loop
 
 ### Command Execution
 - Raw **ADB** command runner
 - Raw **Fastboot** command runner
-- Device-state-gated execution (prevents invalid operations)
+- Device-state–gated execution (prevents invalid operations)
 - Structured output and error reporting
 
 ### Logging & Diagnostics
@@ -65,8 +65,8 @@ No installer required.
 ## Usage Notes
 
 - ADB commands are only enabled when a device is authorized
-- Fastboot commands are only enabled when in Fastboot mode
-- MTK Preloader detection is read-only (no flashing performed)
+- Fastboot commands are only enabled when the device is in Fastboot mode
+- MTK Preloader detection is **read-only** (no flashing is performed)
 
 ---
 
@@ -75,4 +75,4 @@ No installer required.
 MTK Atlas is a **diagnostic and development tool**.
 
 Flashing firmware, unlocking bootloaders, or modifying partitions can permanently damage devices.  
-You are solely responsible for how you use this software
+You are solely responsible for how you use this software.

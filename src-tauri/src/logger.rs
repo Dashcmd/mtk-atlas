@@ -1,5 +1,22 @@
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
+use serde::Serialize;
 
-pub fn emit_log(app: &AppHandle, message: &str) {
-    let _ = app.emit_all("log", message.to_string());
+#[derive(Serialize, Clone)]
+pub struct UiLog {
+    pub level: &'static str,
+    pub message: String,
+}
+
+pub fn emit_log(
+    app: &AppHandle,
+    level: &'static str,
+    message: impl Into<String>,
+) {
+    let _ = app.emit(
+        "ui_log",
+        UiLog {
+            level,
+            message: message.into(),
+        },
+    );
 }

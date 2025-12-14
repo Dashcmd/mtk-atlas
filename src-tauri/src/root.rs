@@ -1,13 +1,14 @@
+use serde::Serialize;
 use std::process::Command;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RootStatus {
     pub has_su: bool,
 }
 
 pub fn detect_root_state() -> RootStatus {
     let output = Command::new("adb")
-        .args(["shell", "which su"])
+        .args(["shell", "which", "su"])
         .output();
 
     let has_su = match output {

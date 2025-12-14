@@ -1,48 +1,86 @@
-use std::process::Command;
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::{
+    process::Command,
+    thread,
+    time::Duration,
+};
 
-#[derive(Debug, Clone, PartialEq)]
+use serde::Serialize;
+use tauri::{AppHandle, Emitter};
+
+use crate::logger::emit_log;
+
+/* ================= DEVICE STATE ================= */
+
+#[derive(Clone, Copy, Debug, Serialize, PartialEq)]
 pub enum DeviceState {
-    NoDevice,
+    Disconnected,
     AdbUnauthorized,
     AdbDevice,
-    FastbootDevice,
-    MtkPreloader, // placeholder for later
+    Fastboot,
+    MtkPreloader,
 }
 
-pub fn start_detection_loop(state: Arc<Mutex<DeviceState>>) {
-    thread::spawn(move || loop {
-        let new_state = detect_device_state();
-        let mut current = state.lock().unwrap();
+/* ================= ENTRY POINT ================= */
 
-        if *current != new_state {
-            *current = new_state;
+pub fn start_detection_loop(app: AppHandle) {
+    thread::spawn(move || {
+        emit_log(&app, "info", "Device detection loop started");
+
+        let mut last_state = DeviceState::Disconnected;
+
+        loop {
+            let new_state = detect_state();
+
+            if new_state != last_state {
+                emit_log(
+                    &app,
+                    "info",
+                    format!("Device state → {:?}", new_state),
+                );
+
+                let _ = app.emit("device_state_changed", new_state);
+                last_state = new_state;
+            }
+
+            thread::sleep(Duration::from_millis(750));
         }
-
-        thread::sleep(Duration::from_millis(800));
     });
 }
 
-fn detect_device_state() -> DeviceState {
-    // Fastboot has priority
-    if let Ok(output) = Command::new("fastboot").arg("devices").output() {
-        if !String::from_utf8_lossy(&output.stdout).trim().is_empty() {
-            return DeviceState::FastbootDevice;
+/* ================= DETECTION ================= */
+
+fn detect_state() -> DeviceState {
+    // ---- Fastboot ----
+    if let Ok(out) = Command::new("fastboot")
+        .arg("devices")
+        .output()
+    {
+        if !out.stdout.is_empty() {
+            return DeviceState::Fastboot;
         }
     }
 
-    // ADB detection
-    if let Ok(output) = Command::new("adb").arg("get-state").output() {
-        let state = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    // ---- ADB ----
+    if let Ok(out) = Command::new("adb")
+        .arg("get-state")
+        .output()
+    {
+        let s = String::from_utf8_lossy(&out.stdout);
 
-        return match state.as_str() {
-            "device" => DeviceState::AdbDevice,
-            "unauthorized" => DeviceState::AdbUnauthorized,
-            _ => DeviceState::NoDevice,
-        };
+        if s.contains("device") {
+            return DeviceState::AdbDevice;
+        }
+
+        if s.contains("unauthorized") {
+            return DeviceState::AdbUnauthorized;
+        }
     }
 
-    DeviceState::NoDevice
+    // ---- MTK Preloader (stub for future) ----
+    // This will later be replaced with USB VID/PID probing
+    // for MediaTek preloader / BROM modes.
+    //
+    // return DeviceState::MtkPreloader;
+
+    DeviceState::Disconnected
 }

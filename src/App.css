@@ -1,54 +1,54 @@
-/* ======================================================
-   MTK ATLAS — UI FIX (MATCHES EXISTING APP.TSX)
-   ====================================================== */
+/* ================= ROOT THEME ================= */
 
 :root {
-  --bg-main: #0c0f14;
-  --bg-panel: #141821;
-  --bg-card: #10141b;
-  --bg-input: #0b0f16;
-
-  --text-main: #e8eaf0;
-  --text-muted: #9ca3af;
-
-  --ok: #22c55e;
-  --warn: #f59e0b;
-  --danger: #ef4444;
-  --info: #60a5fa;
-
-  --border: rgba(255,255,255,0.08);
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --panel-border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --good: #16a34a;
+  --warn: #d97706;
+  --bad: #dc2626;
+  --terminal-bg: #020617;
+  --terminal-text: #e5e7eb;
 }
+
+[data-theme="dark"] {
+  --bg: #020617;
+  --panel: #020617;
+  --panel-border: #1e293b;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #60a5fa;
+  --terminal-bg: #020617;
+  --terminal-text: #e5e7eb;
+}
+
+/* ================= BASE ================= */
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
+html, body, #root {
+  width: 100%;
   height: 100%;
-  background: var(--bg-main);
-  color: var(--text-main);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-size: 13px;
+  margin: 0;
 }
 
-/* ================= CONTAINER ================= */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ================= LAYOUT ================= */
 
 .container {
-  min-height: 100vh;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.fade {
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0.6; }
-  to   { opacity: 1; }
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
 }
 
 /* ================= HEADER ================= */
@@ -57,243 +57,231 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 24px;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
+  letter-spacing: 0.03em;
 }
 
 .subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* ================= NAV ================= */
-
-.nav {
-  display: flex;
-  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .nav button {
-  background: var(--bg-card);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  margin-left: 16px;
   cursor: pointer;
-  font-size: 12px;
+  font-weight: 500;
 }
 
 .nav button.active {
-  color: var(--info);
-  border-color: var(--info);
-  font-weight: 600;
-}
-
-/* ================= GRID ================= */
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 12px;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
 }
 
 /* ================= CARDS ================= */
 
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
   border-radius: 12px;
-  padding: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.03);
 }
 
 .card.primary {
-  border-color: var(--info);
+  border-left: 4px solid var(--accent);
 }
 
-.card h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 14px;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
 }
 
 /* ================= STATUS ================= */
 
 .status-box {
-  padding: 6px 10px;
+  padding: 10px;
   border-radius: 8px;
-  margin-bottom: 6px;
-  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .status-box.good {
-  background: #12341f;
-  color: var(--ok);
-}
-
-.status-box.bad {
-  background: #341212;
-  color: var(--danger);
+  background: rgba(22,163,74,0.12);
+  color: var(--good);
 }
 
 .status-box.warn {
-  background: #3a2d14;
+  background: rgba(217,119,6,0.12);
   color: var(--warn);
 }
 
-.status-box.neutral {
-  background: #232733;
-  color: var(--text-muted);
+.status-box.bad {
+  background: rgba(220,38,38,0.12);
+  color: var(--bad);
 }
 
-/* ================= CAPS ================= */
-
-.caps {
-  background: #070a0f;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 12px;
-  max-height: 160px;
-  overflow-y: auto;
+.status-box.neutral {
+  background: rgba(148,163,184,0.12);
+  color: var(--muted);
 }
 
 /* ================= INPUTS ================= */
 
 textarea,
-input[type="text"] {
+input {
   width: 100%;
-  background: var(--bg-input);
-  color: var(--text-main);
-  border: 1px solid var(--border);
+  padding: 10px;
   border-radius: 8px;
-  padding: 8px;
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  margin-bottom: 10px;
 }
 
-textarea:disabled {
-  opacity: 0.4;
+textarea:disabled,
+input:disabled {
+  opacity: 0.5;
 }
 
 /* ================= TERMINAL ================= */
 
 .terminal {
-  background: #070a0f;
-  border: 1px solid var(--border);
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  padding: 12px;
   border-radius: 8px;
-  padding: 10px;
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 12px;
-  max-height: 220px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  max-height: 240px;
   overflow-y: auto;
+  border: 1px solid #020617;
 }
 
 /* ================= BUTTONS ================= */
 
 button {
-  background: var(--bg-card);
-  color: var(--text-main);
-  border: 1px solid var(--border);
+  padding: 8px 14px;
   border-radius: 8px;
-  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, #ffffff, #f1f5f9);
   cursor: pointer;
-  font-size: 12px;
+  font-weight: 600;
 }
 
 button:hover {
-  border-color: var(--info);
+  background: #e5e7eb;
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ================= CAPS ================= */
+
+.caps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.cap {
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cap.ok {
+  background: rgba(22,163,74,0.12);
+  color: var(--good);
+}
+
+.cap.warn {
+  background: rgba(217,119,6,0.12);
+  color: var(--warn);
+}
+
+.cap.danger {
+  background: rgba(220,38,38,0.15);
+  color: var(--bad);
+}
+
+.cap.off {
+  background: rgba(148,163,184,0.1);
+  color: var(--muted);
+}
+
+/* ================= FASTBOOT DANGER ================= */
+
+.card.fastboot {
+  border: 1px solid #7f1d1d;
+  background: linear-gradient(
+    135deg,
+    rgba(127,29,29,0.2),
+    rgba(127,29,29,0.05)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(185,28,28,0.3),
+    0 0 25px rgba(185,28,28,0.2);
+  position: relative;
+}
+
+.card.fastboot::before {
+  content: "FASTBOOT MODE — DESTRUCTIVE OPERATIONS POSSIBLE";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #7f1d1d;
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  padding: 6px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+.fastboot input {
+  border: 1px solid #7f1d1d;
+  background: rgba(127,29,29,0.08);
+}
+
+.fastboot button {
+  background: linear-gradient(180deg, #7f1d1d, #450a0a);
+  border: 1px solid #991b1b;
+  color: #fff;
+}
+
+.fastboot .terminal {
+  border: 1px solid #7f1d1d;
+  color: #fecaca;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
 }
 
 /* ================= HELP ================= */
 
 .help {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  line-height: 1.6;
 }
 
-.block {
-  margin-bottom: 16px;
+.help code {
+  background: rgba(148,163,184,0.12);
+  padding: 4px 6px;
+  border-radius: 6px;
 }
-
-.block h4 {
-  margin-bottom: 6px;
-}
-
-/* ================= LOGS ================= */
-
-.log-line {
-  white-space: pre-wrap;
-}
-
-.log-line.info { color: var(--info); }
-.log-line.warn { color: var(--warn); }
-.log-line.error { color: var(--danger); }
-
-/* ================= MISC ================= */
-
-.muted {
-  color: var(--text-muted);
-}
-
-/* ================= MTK CAPABILITIES ================= */
-
-.caps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.cap {
-  background: #0b0f16;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  text-align: center;
-}
-
-.cap-title {
-  font-weight: 600;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.cap-desc {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.cap.ok {
-  border-color: #22c55e;
-  color: #22c55e;
-}
-
-.cap.warn {
-  border-color: #f59e0b;
-  color: #f59e0b;
-}
-
-.cap.danger {
-  border-color: #ef4444;
-  color: #ef4444;
-}
-
-.cap.off {
-  opacity: 0.45;
-}
-
-.caps-desc {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
